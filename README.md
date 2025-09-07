@@ -1,6 +1,6 @@
 # Luxe-Threads-Web-Application
-# E-Commerce Web Application
 
+E-Commerce Web Application:
 This is a single-page e-commerce web application built with Node.js + MongoDB and deployed fully on Base44.
 
 ## Features
