@@ -1,0 +1,188 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { X, Filter } from "lucide-react";
+
+const CATEGORIES = [
+  { id: "electronics", label: "Electronics", count: 24 },
+  { id: "fashion", label: "Fashion", count: 156 },
+  { id: "home", label: "Home & Living", count: 89 },
+  { id: "books", label: "Books", count: 45 },
+  { id: "beauty", label: "Beauty", count: 78 },
+  { id: "sports", label: "Sports", count: 34 }
+];
+
+const BRANDS = ["Apple", "Samsung", "Nike", "Adidas", "Sony", "Canon"];
+
+export default function ProductFilters({ 
+  filters, 
+  onFiltersChange, 
+  totalProducts,
+  onClearFilters 
+}) {
+  const updateFilters = (key, value) => {
+    onFiltersChange({ ...filters, [key]: value });
+  };
+
+  const toggleCategory = (category) => {
+    const categories = filters.categories || [];
+    const newCategories = categories.includes(category)
+      ? categories.filter(c => c !== category)
+      : [...categories, category];
+    updateFilters('categories', newCategories);
+  };
+
+  const toggleBrand = (brand) => {
+    const brands = filters.brands || [];
+    const newBrands = brands.includes(brand)
+      ? brands.filter(b => b !== brand)
+      : [...brands, brand];
+    updateFilters('brands', newBrands);
+  };
+
+  const hasActiveFilters = 
+    (filters.categories?.length > 0) ||
+    (filters.brands?.length > 0) ||
+    (filters.priceRange?.[0] > 0) ||
+    (filters.priceRange?.[1] < 1000);
+
+  return (
+    <div className="space-y-6">
+      {/* Filter Header */}
+      <Card className="premium-card border-0">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Filter className="w-5 h-5" />
+              Filters
+            </CardTitle>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearFilters}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-gray-500">{totalProducts} products found</p>
+        </CardHeader>
+      </Card>
+
+      {/* Price Range */}
+      <Card className="premium-card border-0">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Price Range</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Slider
+            value={filters.priceRange || [0, 1000]}
+            onValueChange={(value) => updateFilters('priceRange', value)}
+            max={1000}
+            min={0}
+            step={10}
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>${filters.priceRange?.[0] || 0}</span>
+            <span>${filters.priceRange?.[1] || 1000}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories */}
+      <Card className="premium-card border-0">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Categories</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {CATEGORIES.map((category) => (
+            <div key={category.id} className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={category.id}
+                  checked={filters.categories?.includes(category.id) || false}
+                  onCheckedChange={() => toggleCategory(category.id)}
+                />
+                <label
+                  htmlFor={category.id}
+                  className="text-sm font-medium cursor-pointer hover:text-gray-700 transition-colors"
+                >
+                  {category.label}
+                </label>
+              </div>
+              <Badge variant="secondary" className="text-xs">
+                {category.count}
+              </Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Brands */}
+      <Card className="premium-card border-0">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Brands</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {BRANDS.map((brand) => (
+            <div key={brand} className="flex items-center space-x-2">
+              <Checkbox
+                id={brand}
+                checked={filters.brands?.includes(brand) || false}
+                onCheckedChange={() => toggleBrand(brand)}
+              />
+              <label
+                htmlFor={brand}
+                className="text-sm font-medium cursor-pointer hover:text-gray-700 transition-colors"
+              >
+                {brand}
+              </label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Active Filters */}
+      {hasActiveFilters && (
+        <Card className="premium-card border-0">
+          <CardHeader>
+            <CardTitle className="text-base font-medium">Active Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {filters.categories?.map((category) => (
+                <Badge
+                  key={category}
+                  variant="secondary"
+                  className="flex items-center gap-1 cursor-pointer hover:bg-gray-200"
+                  onClick={() => toggleCategory(category)}
+                >
+                  {CATEGORIES.find(c => c.id === category)?.label}
+                  <X className="w-3 h-3" />
+                </Badge>
+              ))}
+              {filters.brands?.map((brand) => (
+                <Badge
+                  key={brand}
+                  variant="secondary"
+                  className="flex items-center gap-1 cursor-pointer hover:bg-gray-200"
+                  onClick={() => toggleBrand(brand)}
+                >
+                  {brand}
+                  <X className="w-3 h-3" />
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

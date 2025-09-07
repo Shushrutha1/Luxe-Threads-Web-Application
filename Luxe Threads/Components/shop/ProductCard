@@ -1,0 +1,136 @@
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ShoppingCart, Heart, Star } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function ProductCard({ product, onAddToCart, onProductClick }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    setIsLoading(true);
+    try {
+      await onAddToCart(product);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const hasDiscount = product.original_price && product.original_price > product.price;
+  const discountPercentage = hasDiscount ? 
+    Math.round(((product.original_price - product.price) / product.original_price) * 100) : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -4 }}
+      className="group cursor-pointer"
+      onClick={() => onProductClick(product)}
+    >
+      <Card className="premium-card border-0 overflow-hidden bg-white">
+        <div className="relative overflow-hidden">
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          
+          {/* Badges */}
+          <div className="absolute top-3 left-3 space-y-1">
+            {product.featured && (
+              <Badge className="gold-gradient text-white border-0">Featured</Badge>
+            )}
+            {hasDiscount && (
+              <Badge className="bg-red-500 text-white border-0">-{discountPercentage}%</Badge>
+            )}
+          </div>
+
+          {/* Like Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 right-3 bg-white/80 hover:bg-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLiked(!isLiked);
+            }}
+          >
+            <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+          </Button>
+
+          {/* Quick Add to Cart */}
+          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              onClick={handleAddToCart}
+              disabled={isLoading || product.stock === 0}
+              className="w-full bg-black hover:bg-gray-800 text-white"
+            >
+              {isLoading ? (
+                "Adding..."
+              ) : product.stock === 0 ? (
+                "Out of Stock"
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Quick Add
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide">{product.brand}</p>
+                <h3 className="font-medium text-gray-900 line-clamp-2 group-hover:text-gray-700 transition-colors">
+                  {product.name}
+                </h3>
+              </div>
+            </div>
+
+            {/* Rating */}
+            {product.rating && (
+              <div className="flex items-center space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 ${
+                      i < Math.floor(product.rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+                <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
+              </div>
+            )}
+
+            {/* Price */}
+            <div className="flex items-center space-x-2">
+              <span className="text-lg font-bold text-gray-900">
+                ${product.price.toFixed(2)}
+              </span>
+              {hasDiscount && (
+                <span className="text-sm text-gray-500 line-through">
+                  ${product.original_price.toFixed(2)}
+                </span>
+              )}
+            </div>
+
+            {/* Stock Status */}
+            {product.stock <= 5 && product.stock > 0 && (
+              <p className="text-xs text-amber-600">Only {product.stock} left in stock</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
